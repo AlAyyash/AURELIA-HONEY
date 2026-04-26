@@ -1,13 +1,11 @@
 let cart = [];
 let orders = JSON.parse(localStorage.getItem("orders")) || [];
 
-/* 🛒 إضافة للسلة */
 function addToCart(name, price) {
   cart.push({ name, price });
   renderCart();
 }
 
-/* 📦 عرض السلة */
 function renderCart() {
   let box = document.getElementById("cartItems");
   let total = 0;
@@ -18,14 +16,14 @@ function renderCart() {
     total += i.price;
 
     box.innerHTML += `
-      <div class="item">
-        ${i.name} - ${i.price} ريال
+      <div>
+        ${i.name} - ${i.price}
         <button onclick="removeItem(${index})">حذف</button>
       </div>
     `;
   });
 
-  document.getElementById("total").innerText = "الإجمالي: " + total + " ريال";
+  document.getElementById("total").innerText = "الإجمالي: " + total;
 }
 
 function removeItem(i) {
@@ -33,12 +31,11 @@ function removeItem(i) {
   renderCart();
 }
 
-/* 🧠 رقم طلب */
-function generateOrderId() {
+function orderId() {
   return "AUR-" + Date.now();
 }
 
-/* 💳 Checkout احترافي */
+/* 💳 إنشاء الطلب + واتساب */
 function checkout() {
 
   let phone = document.getElementById("phone").value;
@@ -48,36 +45,76 @@ function checkout() {
   let total = cart.reduce((s, i) => s + i.price, 0);
 
   let order = {
-    id: generateOrderId(),
+    id: orderId(),
     phone,
     items: cart,
     total,
-    status: "جديد",
-    date: new Date().toLocaleString()
+    status: "جديد"
   };
 
   orders.push(order);
   localStorage.setItem("orders", JSON.stringify(orders));
 
-  /* 📲 واتساب منظم */
   let msg =
-`🍯 طلب جديد - أوريليا
+`🍯 طلب أوريليا
+رقم: ${order.id}
+جوال: ${phone}
+الإجمالي: ${total}`;
 
-رقم الطلب: ${order.id}
-جوال العميل: ${phone}
-الإجمالي: ${total} ريال
-
-الطلبات:
-${cart.map(i => i.name).join(" - ")}`;
-
-  let adminNumber = "966552256034";
+  let admin = "9665XXXXXXXX";
 
   window.open(
-    `https://wa.me/${adminNumber}?text=${encodeURIComponent(msg)}`
+    `https://wa.me/${admin}?text=${encodeURIComponent(msg)}`
   );
 
   cart = [];
   renderCart();
+}
 
-  alert("تم إنشاء الطلب بنجاح ✨");
+/* 📦 تتبع */
+function trackOrder() {
+
+  let id = document.getElementById("trackId").value;
+
+  let order = orders.find(o => o.id === id);
+
+  let box = document.getElementById("trackResult");
+
+  if (!order) {
+    box.innerHTML = "❌ غير موجود";
+    return;
+  }
+
+  box.innerHTML = `
+    <p>رقم: ${order.id}</p>
+    <p>الحالة: ${order.status}</p>
+    <p>الإجمالي: ${order.total}</p>
+  `;
+}
+
+/* 🧠 لوحة التحكم */
+function loadOrders() {
+
+  let box = document.getElementById("ordersList");
+  box.innerHTML = "";
+
+  orders.forEach((o, i) => {
+
+    box.innerHTML += `
+      <div class="order">
+        <p>${o.id}</p>
+        <p>${o.phone}</p>
+        <p>${o.total}</p>
+
+        <button onclick="setStatus(${i},'تم الشحن')">شحن</button>
+        <button onclick="setStatus(${i},'تم التوصيل')">توصيل</button>
+      </div>
+    `;
+  });
+}
+
+function setStatus(i, status) {
+  orders[i].status = status;
+  localStorage.setItem("orders", JSON.stringify(orders));
+  loadOrders();
 }
