@@ -61,7 +61,7 @@ function checkout() {
 جوال: ${phone}
 الإجمالي: ${total}`;
 
-  let admin = "9665XXXXXXXX";
+  let admin = "966509355903";
 
   window.open(
     `https://wa.me/${admin}?text=${encodeURIComponent(msg)}`
